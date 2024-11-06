@@ -72,7 +72,7 @@ Make sure you have the following installed:
    python manage.py makemigrations
    python manage.py migrate
    ```
-5. **Create a Superuser (Optional)**
+5. **Create a Superuser**
 
    To access the Django admin interface, create a superuser account:
 
