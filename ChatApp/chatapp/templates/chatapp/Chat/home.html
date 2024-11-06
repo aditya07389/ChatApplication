@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'chatapp/Chat/home.css' %}">
+    <title>ChatApp-Home</title>
+    
+</head>
+<body>
+
+    
+
+<div class="container">
+    <h1>Welcome  {{ user.username }}</h1>
+    {% if user.is_superuser %}
+        <p style="text-align: left;">
+            Welcome to the admin portal of ChatApp. Here you can see the customer queries and assist them with their concerns.
+        </p>
+    {% else %}
+        <p style="text-align: left;">
+            Welcome to ChatApp, where you can chat with the customer support team of our eCommerce platform. 
+            We are here to assist you with your queries and provide a smooth shopping experience.
+        </p>
+    {% endif %}
+
+    <h2>Start a chat:</h2>
+    <ul>
+        {% for other_user in users %}
+            <li><a href="{% url 'chat_room' other_user.username %}" style="margin: 1rem;">Chat with {{ other_user.username }}</a></li>
+        {% endfor %}
+    </ul>
+
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button style="color: brown; padding: 0.5rem; border-radius: 2px; background-color: beige; cursor: pointer;" type="submit">Logout</button>
+    </form>
+</div>
+
+</body>
+</html>

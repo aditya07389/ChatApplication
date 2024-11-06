@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'chatapp/Chat/chat_room.css' %}">
+    <title>Chat with {{ other_user.username }}</title>
+    
+</head>
+<body>
+
+    
+{% comment %} This is the chatcontainer , which consits of Chat messages  {% endcomment %}
+<div class="chat-container">
+    <a href="{% url 'home' %}" style="display: inline-block; margin-bottom: 15px; color: #fff8dc; background-color: #8b4513; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-size: 1em; transition: background-color 0.3s ease;">
+        Back to Home
+    </a>
+    {% comment %} The other user in this context is the admin(superuser)/Customer Support {% endcomment %}
+    <h1>Chat with {{ other_user.username }}</h1>
+
+    <div id="chat-messages">
+        {% for message in messages %}
+            {% if message.sender.username == user.username %}
+                <div class="message-right">
+                    <strong>{{ message.sender.username }}:</strong> {{ message.content }}
+                    <span class="timestamp">{{ message.timestamp|date:"h:i A" }}</span>
+                </div>
+            {% else %}
+                <div class="message-left">
+                    <strong>{{ message.sender.username }}:</strong> {{ message.content }}
+                    <span class="timestamp">{{ message.timestamp|date:"h:i A" }}</span>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div style="display: flex; align-items: center;">
+        <input type="text" id="chat-message-input" placeholder="Type your message...">
+        <input type="button" id="chat-message-submit" value="Send">
+    </div>
+</div>
+
+{{ room_name|json_script:"room-name" }}
+{{ user.username|json_script:"user-username" }}
+{{ other_user.username|json_script:"other-username" }}
+
+{% comment %} JavaScript to handle the dynamic updation of chat content {% endcomment %}
+
+<script>
+    const roomName = JSON.parse(document.getElementById('room-name').textContent);
+    const userName = JSON.parse(document.getElementById('user-username').textContent);
+    const otherUserName = JSON.parse(document.getElementById('other-username').textContent);
+
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+    );
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        
+        const messageContainer = document.createElement('div');
+        messageContainer.className = data.sender === userName ? 'message-right' : 'message-left';
+        
+        // The structure of the message
+        messageContainer.innerHTML = '<strong>' + data.sender + ':</strong> ' + data.message +
+                                     '<span class="timestamp">' + data.timestamp + '</span>';
+                                     
+
+        document.querySelector('#chat-messages').appendChild(messageContainer);
+        document.querySelector('#chat-messages').scrollTop = document.querySelector('#chat-messages').scrollHeight;
+    };
+    // for debugging purposes
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+    // This fires up upon clicking send button
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'sender': userName,
+            'receiver': otherUserName
+        }));
+        messageInputDom.value = '';
+    };
+</script>
+
+</body>
+</html>
