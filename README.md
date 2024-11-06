@@ -40,6 +40,7 @@ Make sure you have the following installed:
 
    ```bash
    git clone <repository-url>
+   cd ChatApplication
    cd ChatApp
    ```
 
